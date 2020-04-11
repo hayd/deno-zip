@@ -1,100 +1,47 @@
 import "./jszip.min.js";
+import { WalkOptions, walk } from "https://deno.land/std@v0.40.0/fs/mod.ts";
+import {
+  InputFileFormat,
+  JSZipFileOptions,
+  JSZipGeneratorOptions,
+  JSZipLoadOptions,
+  JSZipObject,
+  OutputByType,
+} from "./types.ts";
 
-interface JSZipObject {
-  name: string;
-  dir: boolean;
-  date: Date;
-  comment: string;
-  /** The UNIX permissions of the file, if any. */
-  unixPermissions: number | string | null;
-  /** The UNIX permissions of the file, if any. */
-  dosPermissions: number | null;
-  options: JSZipObjectOptions;
-
-  /**
-   * Prepare the content in the asked type.
-   * @param type the type of the result.
-   * @param onUpdate a function to call on each internal update.
-   * @return Promise the promise of the result.
-   */
-  async<T extends OutputType>(
-    type: T,
-    onUpdate?: OnUpdateCallback,
-  ): Promise<OutputByType[T]>;
-
-  // nodeStream(
-  //   type?: "nodestream",
-  //   onUpdate?: OnUpdateCallback
-  // ): NodeJS.ReadableStream;
+/**
+ * Read zip file asynchronously from a file
+ *
+ * @param path of zip file
+ * @return Returns promise
+ */
+export async function readZip(path: string): Promise<JSZip> {
+  const z = new JSZip();
+  const content: Uint8Array = await Deno.readFile(path);
+  await z.loadAsync(content);
+  return z;
 }
 
-interface JSZipObjectOptions {
-  compression: Compression;
-}
-
-interface Metadata {
-  percent: number;
-  currentFile: string;
-}
-
-type OnUpdateCallback = (metadata: Metadata) => void;
-
-type Compression = "STORE" | "DEFLATE";
-
-interface JSZipLoadOptions {
-  base64?: boolean;
-  checkCRC32?: boolean;
-  optimizedBinaryString?: boolean;
-  createFolders?: boolean;
-  decodeFileName?(filenameBytes: Uint8Array): string;
-}
-
-interface InputByType {
-  base64: string;
-  string: string;
-  text: string;
-  binarystring: string;
-  array: number[];
-  uint8array: Uint8Array;
-  arraybuffer: ArrayBuffer;
-  blob: Blob;
-  // stream: NodeJS.ReadableStream;
-}
-
-type InputFileFormat = InputByType[keyof InputByType];
-
-interface OutputByType {
-  base64: string;
-  text: string;
-  string: string;
-  binarystring: string;
-  array: number[];
-  uint8array: Uint8Array;
-  arraybuffer: ArrayBuffer;
-  blob: Blob;
-  // nodebuffer: Buffer;
-}
-
-type OutputType = keyof OutputByType;
-
-interface JSZipGeneratorOptions<T extends OutputType = OutputType> {
-  compression?: Compression;
-  compressionOptions?: null | {
-    level: number;
-  };
-  type?: T;
-  comment?: string;
-  /**
-   * mime-type for the generated file.
-   * Useful when you need to generate a file with a different extension, ie: “.ods”.
-   * @default 'application/zip'
-   */
-  mimeType?: string;
-  encodeFileName?(filename: string): string;
-  /** Stream the files and create file descriptors */
-  streamFiles?: boolean;
-  /** DOS (default) or UNIX */
-  platform?: "DOS" | "UNIX";
+/**
+ * Read a directory as a JSZip
+ *
+ * @param dir directory
+ * @return Returns promise
+ */
+export async function zipDir(
+  dir: string,
+  options?: WalkOptions,
+): Promise<JSZip> {
+  const z = new JSZip();
+  for await (const f of walk(dir, options)) {
+    if (f.info.name === null) {
+      // skip directories
+      continue;
+    }
+    const contents = await Deno.readFile(f.filename);
+    z.addFile(f.filename, contents);
+  }
+  return z;
 }
 
 export class JSZip {
@@ -142,7 +89,11 @@ export class JSZip {
    * @param options Optional information about the file
    * @return JSZip object
    */
-  addFile(path: string, content?: string, options?: object): JSZipObject {
+  addFile(
+    path: string,
+    content?: string | Uint8Array,
+    options?: JSZipFileOptions,
+  ): JSZipObject {
     // @ts-ignores
     const f = this._z.file(path, content, options);
     return f as JSZipObject;
@@ -212,21 +163,23 @@ export class JSZip {
    * @param path of zip file
    * @return Returns promise
    */
-  async writeFile(path: string): Promise<void> {
+  async writeZip(path: string): Promise<void> {
     const b: Uint8Array = await this.generateAsync({ type: "uint8array" });
     return await Deno.writeFile(path, b);
   }
 
-  /**
-   * Read zip file asynchronously from a file
-   *
-   * @param path of zip file
-   * @return Returns promise
-   */
-  async readFile(path: string): Promise<JSZip> {
-    const content: Uint8Array = await Deno.readFile(path);
-    await this.loadAsync(content);
-    return this;
+  async unzip(dir?: string): Promise<void> {
+    // FIXME optionally replace the existing folder prefix with dir.
+    for (const f of this) {
+      if (f.dir) {
+        // hopefully the directory is prior to any files inside it!
+        await Deno.mkdir(f.name, { recursive: true });
+        continue;
+      }
+      const content = await f.async("uint8array");
+      // TODO pass WriteFileOptions e.g. mode
+      await Deno.writeFile(f.name, content);
+    }
   }
 
   *[Symbol.iterator](): Iterator<JSZipObject> {
