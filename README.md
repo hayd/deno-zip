@@ -6,7 +6,7 @@ A wrapper around JSZip for deno.
 
 Create zipfile:
 ```ts
-import { JSZip } from "https://raw.githubusercontent.com/hayd/deno-zip/master/mod.ts";
+import { JSZip } from "https://deno.land/x/jszip/mod.ts";
 
 const zip = new JSZip();
 zip.addFile("Hello.txt", "Hello World\n");
@@ -19,7 +19,7 @@ await zip.writeZip("example.zip");
 
 Read zipfile:
 ```ts
-import { readZip } from "https://raw.githubusercontent.com/hayd/deno-zip/master/mod.ts";
+import { readZip } from "https://deno.land/x/jszip/mod.ts";
 
 const zip = await readZip("example.zip");
 for (const z of zip) {
