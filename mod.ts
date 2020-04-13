@@ -36,7 +36,7 @@ export async function zipDir(
   const z = new JSZip();
   const cwd = Deno.cwd();
   // FIXME it would be nice to do this without chdir...
-  Deno.chdir(dir)
+  Deno.chdir(dir);
   try {
     for await (const f of walk(".", options)) {
       if (f.info.name === null) {

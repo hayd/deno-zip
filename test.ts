@@ -17,9 +17,9 @@ async function fromDir<T>(dir: string, f: () => Promise<T>) {
   const cwd = Deno.cwd();
   Deno.chdir(dir);
   try {
-    return await f()
+    return await f();
   } finally {
-    Deno.chdir(cwd)
+    Deno.chdir(cwd);
   }
 }
 
@@ -28,9 +28,9 @@ async function exampleDir(): Promise<string> {
   await fromDir(dir, async () => {
     await Deno.writeFile("Hello.txt", encode("Hello World\n"));
     await Deno.mkdir("images");
-    Deno.chdir("images")
+    Deno.chdir("images");
     await Deno.writeFile("smile.gif", encode("\0"));
-  })
+  });
   return dir;
 }
 
@@ -60,5 +60,5 @@ Deno.test(async function dir() {
 
   const img = z.folder("images");
   console.log("img", img);
-  assertEquals(img.file("smile.gif").name, "images/smile.gif")
-})
+  assertEquals(img.file("smile.gif").name, "images/smile.gif");
+});
