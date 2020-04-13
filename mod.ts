@@ -1,5 +1,6 @@
 import "./jszip.min.js";
 import { WalkOptions, walk } from "https://deno.land/std@v0.40.0/fs/mod.ts";
+import { SEP } from "https://deno.land/std@v0.40.0/path/mod.ts";
 import {
   InputFileFormat,
   JSZipFileOptions,
@@ -33,13 +34,27 @@ export async function zipDir(
   options?: WalkOptions,
 ): Promise<JSZip> {
   const z = new JSZip();
-  for await (const f of walk(dir, options)) {
-    if (f.info.name === null) {
-      // skip directories
-      continue;
+  const cwd = Deno.cwd();
+  // FIXME it would be nice to do this without chdir...
+  Deno.chdir(dir)
+  try {
+    for await (const f of walk(".", options)) {
+      if (f.info.name === null) {
+        // skip directories
+        continue;
+      }
+      const contents = await Deno.readFile(f.filename);
+
+      // In order to support Windows we do this ridiculousness.
+      let ff = f.filename.split(SEP);
+      let zz = z;
+      while (ff.length > 1) {
+        zz = zz.folder(ff.shift()!);
+      }
+      zz.addFile(ff[0], contents);
     }
-    const contents = await Deno.readFile(f.filename);
-    z.addFile(f.filename, contents);
+  } finally {
+    Deno.chdir(cwd);
   }
   return z;
 }
@@ -168,6 +183,12 @@ export class JSZip {
     return await Deno.writeFile(path, b);
   }
 
+  /**
+   * Unzip a JSZip asynchronously to a directory
+   *
+   * @param dir to unzip into
+   * @return Returns promise
+   */
   async unzip(dir?: string): Promise<void> {
     // FIXME optionally replace the existing folder prefix with dir.
     for (const f of this) {
