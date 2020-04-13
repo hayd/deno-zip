@@ -1,6 +1,6 @@
 import "./jszip.min.js";
 import { WalkOptions, walk } from "https://deno.land/std@v0.40.0/fs/mod.ts";
-import { SEP } from "https://deno.land/std@v0.40.0/path/mod.ts";
+import { SEP, join } from "https://deno.land/std@v0.40.0/path/mod.ts";
 import {
   InputFileFormat,
   JSZipFileOptions,
@@ -189,17 +189,18 @@ export class JSZip {
    * @param dir to unzip into
    * @return Returns promise
    */
-  async unzip(dir?: string): Promise<void> {
+  async unzip(dir: string = "."): Promise<void> {
     // FIXME optionally replace the existing folder prefix with dir.
     for (const f of this) {
+      const ff = join(dir, f.name);
       if (f.dir) {
         // hopefully the directory is prior to any files inside it!
-        await Deno.mkdir(f.name, { recursive: true });
+        await Deno.mkdir(ff, { recursive: true });
         continue;
       }
       const content = await f.async("uint8array");
       // TODO pass WriteFileOptions e.g. mode
-      await Deno.writeFile(f.name, content);
+      await Deno.writeFile(ff, content);
     }
   }
 
