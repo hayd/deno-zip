@@ -1,5 +1,6 @@
-import { assertEquals } from "https://deno.land/std@v0.40.0/testing/asserts.ts";
 import { decode, encode } from "https://deno.land/std@v0.40.0/encoding/utf8.ts";
+import { join } from "https://deno.land/std@v0.40.0/path/mod.ts";
+import { assertEquals } from "https://deno.land/std@v0.40.0/testing/asserts.ts";
 import { JSZip, readZip, zipDir } from "./mod.ts";
 
 // FIXME use tmp directory and clean up.
@@ -37,14 +38,14 @@ async function exampleDir(): Promise<string> {
 Deno.test(async function read() {
   await exampleZip("example.zip");
 
-  const zip2 = await readZip("example.zip");
-  assertEquals(zip2.file("Hello.txt").name, "Hello.txt");
+  const z = await readZip("example.zip");
+  assertEquals(z.file("Hello.txt").name, "Hello.txt");
 
   let i = 0;
-  for (const f of zip2) i++;
+  for (const f of z) i++;
   assertEquals(i, 3);
 
-  assertEquals("Hello World\n", await zip2.file("Hello.txt").async("string"));
+  assertEquals("Hello World\n", await z.file("Hello.txt").async("string"));
 
   await Deno.remove("example.zip");
 });
@@ -59,6 +60,18 @@ Deno.test(async function dir() {
   assertEquals("Hello World\n", await z.file("Hello.txt").async("string"));
 
   const img = z.folder("images");
-  console.log("img", img);
   assertEquals(img.file("smile.gif").name, "images/smile.gif");
 });
+
+Deno.test(async function unzip() {
+  const dir = await Deno.makeTempDir();
+  await exampleZip("example.zip");
+  const z = await readZip("example.zip");
+  await z.unzip(dir)
+
+  const content = await Deno.readFile(join(dir, "Hello.txt"))
+  assertEquals("Hello World\n", decode(content))
+
+  const smile = await Deno.readFile(join(dir, "images", "smile.gif"))
+  assertEquals("", decode(smile))
+})
