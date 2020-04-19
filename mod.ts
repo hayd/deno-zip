@@ -1,6 +1,6 @@
 import "./jszip.min.js";
-import { WalkOptions, walk } from "https://deno.land/std@v0.40.0/fs/mod.ts";
-import { SEP, join } from "https://deno.land/std@v0.40.0/path/mod.ts";
+import { WalkOptions, walk } from "https://deno.land/std@v0.41.0/fs/mod.ts";
+import { SEP, join } from "https://deno.land/std@v0.41.0/path/mod.ts";
 import {
   InputFileFormat,
   JSZipFileOptions,
@@ -39,7 +39,7 @@ export async function zipDir(
   Deno.chdir(dir);
   try {
     for await (const f of walk(".", options)) {
-      if (f.info.name === null) {
+      if (f.info.isDirectory) {
         // skip directories
         continue;
       }
