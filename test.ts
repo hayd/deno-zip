@@ -1,6 +1,6 @@
-import { decode, encode } from "https://deno.land/std@v0.40.0/encoding/utf8.ts";
-import { join } from "https://deno.land/std@v0.40.0/path/mod.ts";
-import { assertEquals } from "https://deno.land/std@v0.40.0/testing/asserts.ts";
+import { decode, encode } from "https://deno.land/std@v0.41.0/encoding/utf8.ts";
+import { join } from "https://deno.land/std@v0.41.0/path/mod.ts";
+import { assertEquals } from "https://deno.land/std@v0.41.0/testing/asserts.ts";
 import { JSZip, readZip, zipDir } from "./mod.ts";
 
 // FIXME use tmp directory and clean up.
@@ -67,11 +67,11 @@ Deno.test(async function unzip() {
   const dir = await Deno.makeTempDir();
   await exampleZip("example.zip");
   const z = await readZip("example.zip");
-  await z.unzip(dir)
+  await z.unzip(dir);
 
-  const content = await Deno.readFile(join(dir, "Hello.txt"))
-  assertEquals("Hello World\n", decode(content))
+  const content = await Deno.readFile(join(dir, "Hello.txt"));
+  assertEquals("Hello World\n", decode(content));
 
-  const smile = await Deno.readFile(join(dir, "images", "smile.gif"))
-  assertEquals("", decode(smile))
-})
+  const smile = await Deno.readFile(join(dir, "images", "smile.gif"));
+  assertEquals("", decode(smile));
+});
