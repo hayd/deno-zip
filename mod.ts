@@ -1,4 +1,4 @@
-import "./jszip.min.js";
+import  _JSZip from "https://dev.jspm.io/jszip@3.4.0";
 import { WalkOptions, walk } from "https://deno.land/std@v0.41.0/fs/mod.ts";
 import { SEP, join } from "https://deno.land/std@v0.41.0/path/mod.ts";
 import {
@@ -62,11 +62,11 @@ export async function zipDir(
 export class JSZip {
   protected _z: any;
 
-  // we should assert the type (we want it to be a window.JSZip) ?
+  // we should assert the type (we want it to be a _JSZip) ?
   constructor(z?: any) {
     if (z === undefined) {
       // @ts-ignores
-      this._z = new window.JSZip();
+      this._z = new _JSZip();
     } else {
       this._z = z;
     }
