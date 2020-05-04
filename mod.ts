@@ -1,6 +1,6 @@
 import  _JSZip from "https://dev.jspm.io/jszip@3.4.0";
-import { WalkOptions, walk } from "https://deno.land/std@v0.41.0/fs/mod.ts";
-import { SEP, join } from "https://deno.land/std@v0.41.0/path/mod.ts";
+import { WalkOptions, walk } from "https://deno.land/std@v0.42.0/fs/mod.ts";
+import { SEP, join } from "https://deno.land/std@v0.42.0/path/mod.ts";
 import {
   InputFileFormat,
   JSZipFileOptions,
@@ -39,14 +39,14 @@ export async function zipDir(
   Deno.chdir(dir);
   try {
     for await (const f of walk(".", options)) {
-      if (f.info.isDirectory) {
+      if (f.isDirectory) {
         // skip directories
         continue;
       }
-      const contents = await Deno.readFile(f.filename);
+      const contents = await Deno.readFile(f.path);
 
       // In order to support Windows we do this ridiculousness.
-      let ff = f.filename.split(SEP);
+      let ff = f.path.split(SEP);
       let zz = z;
       while (ff.length > 1) {
         zz = zz.folder(ff.shift()!);

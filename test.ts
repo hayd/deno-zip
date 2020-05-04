@@ -1,6 +1,6 @@
-import { decode, encode } from "https://deno.land/std@v0.41.0/encoding/utf8.ts";
-import { join } from "https://deno.land/std@v0.41.0/path/mod.ts";
-import { assertEquals } from "https://deno.land/std@v0.41.0/testing/asserts.ts";
+import { decode, encode } from "https://deno.land/std@v0.42.0/encoding/utf8.ts";
+import { join } from "https://deno.land/std@v0.42.0/path/mod.ts";
+import { assertEquals } from "https://deno.land/std@v0.42.0/testing/asserts.ts";
 import { JSZip, readZip, zipDir } from "./mod.ts";
 
 // FIXME use tmp directory and clean up.
@@ -35,7 +35,7 @@ async function exampleDir(): Promise<string> {
   return dir;
 }
 
-Deno.test(async function read() {
+Deno.test("read", async () => {
   await exampleZip("example.zip");
 
   const z = await readZip("example.zip");
@@ -52,7 +52,7 @@ Deno.test(async function read() {
 
 // TODO add tests for unzip
 
-Deno.test(async function dir() {
+Deno.test("dir", async () => {
   const dir = await exampleDir();
   const z = await zipDir(dir);
 
@@ -63,7 +63,7 @@ Deno.test(async function dir() {
   assertEquals(img.file("smile.gif").name, "images/smile.gif");
 });
 
-Deno.test(async function unzip() {
+Deno.test("unzip", async () => {
   const dir = await Deno.makeTempDir();
   await exampleZip("example.zip");
   const z = await readZip("example.zip");
