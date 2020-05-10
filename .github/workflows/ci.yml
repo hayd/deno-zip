@@ -15,7 +15,7 @@ jobs:
 
     - uses: denolib/setup-deno@master
       with:
-        deno-version: 0.42.0
+        deno-version: 1.0.0-rc2
 
     - name: Run tests
-      run: deno test --allow-write --allow-read
+      run: deno test --allow-write --unstable
