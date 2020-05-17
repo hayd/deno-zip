@@ -18,4 +18,4 @@ jobs:
         deno-version: 1.0.0
 
     - name: Run tests
-      run: deno test --allow-write --unstable
+      run: deno test --allow-read --allow-write --unstable
