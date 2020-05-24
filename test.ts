@@ -1,6 +1,6 @@
-import { decode, encode } from "https://deno.land/std@v0.51.0/encoding/utf8.ts";
-import { join } from "https://deno.land/std@v0.51.0/path/mod.ts";
-import { assertEquals } from "https://deno.land/std@v0.51.0/testing/asserts.ts";
+import { decode, encode } from "https://deno.land/std@v0.53.0/encoding/utf8.ts";
+import { join } from "https://deno.land/std@v0.53.0/path/mod.ts";
+import { assertEquals } from "https://deno.land/std@v0.53.0/testing/asserts.ts";
 import { JSZip, readZip, zipDir } from "./mod.ts";
 
 // FIXME use tmp directory and clean up.
