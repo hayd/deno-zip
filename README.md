@@ -26,6 +26,6 @@ for (const z of zip) {
   console.log(z.name);
 }
 
-console.log(await zip.file("example/Hello.txt").async("string"));
+console.log(await zip.file("Hello.txt").async("string"));
 // "Hello World\n"
 ```
