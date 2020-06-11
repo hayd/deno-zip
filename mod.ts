@@ -1,6 +1,6 @@
 import  _JSZip from "https://dev.jspm.io/jszip@3.4.0";
 import { WalkOptions, walk } from "https://deno.land/std@v0.54.0/fs/mod.ts";
-import { SEP, join } from "https://deno.land/std@v0.54.0/path/mod.ts";
+import { SEP, join, extname } from "https://deno.land/std@v0.54.0/path/mod.ts";
 import {
   InputFileFormat,
   JSZipFileOptions,
@@ -189,18 +189,20 @@ export class JSZip {
    * @param dir to unzip into
    * @return Returns promise
    */
-  async unzip(dir: string = "."): Promise<void> {
+   async unzip(file: string): Promise<void> {
     // FIXME optionally replace the existing folder prefix with dir.
-    for (const f of this) {
-      const ff = join(dir, f.name);
-      if (f.dir) {
-        // hopefully the directory is prior to any files inside it!
-        await Deno.mkdir(ff, { recursive: true });
-        continue;
-      }
-      const content = await f.async("uint8array");
-      // TODO pass WriteFileOptions e.g. mode
-      await Deno.writeFile(ff, content);
+    // [@arsandev] @params dir should not start from the root folder (.).
+    if (extname(file) !== ".zip") throw Error("selected file is not in zip format");
+    const zip = await readZip(file);
+    const encoder = new TextEncoder();
+    const s = file.split(".zip")[0];
+    for await (const f of zip) { // Make all directories ready
+      if (f.dir)
+        Deno.mkdir(`${s}/${f.name}`, { recursive: true });
+    }
+    for (const f of zip) { // Write files and fill in all directories
+      if (!f.dir)
+        Deno.writeFile(`${s}/${f.name}`, encoder.encode(await zip.file(f.name).async("string")));
     }
   }
 
