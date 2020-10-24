@@ -159,17 +159,18 @@ export class JSZip {
   }
 
   /**
-   * Deserialize zip file asynchronously
+   * Load zip data
    *
    * @param data Serialized zip file
    * @param options Options for deserializing
-   * @return Returns promise
+   * @return Returns promise of self
    */
   async loadAsync(
     data: InputFileFormat,
     options?: JSZipLoadOptions,
   ): Promise<JSZip> {
-    return this._z.loadAsync(data, options);
+    await this._z.loadAsync(data, options);
+    return this;
   }
 
   /**
