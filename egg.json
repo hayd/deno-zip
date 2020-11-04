@@ -1,0 +1,10 @@
+{
+    "name": "jszip",
+    "description": "A JSZip wrapper for handling zipfiles in deno",
+    "homepage": "https://github.com/hayd/deno-zip",
+    "files": [
+    "./**/*.ts",
+    "README.md"
+    ],
+    "entry": "./mod.ts"
+}
