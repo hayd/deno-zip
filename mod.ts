@@ -1,6 +1,6 @@
 import  _JSZip from "https://dev.jspm.io/jszip@3.5.0";
 import { WalkOptions, walk } from "https://deno.land/std@0.99.0/fs/walk.ts";
-import { SEP, join } from "https://deno.land/std@0.99.0/path/mod.ts";
+import { SEP, join, resolve, dirname } from "https://deno.land/std@0.99.0/path/mod.ts";
 import type {
   InputFileFormat,
   JSZipFileOptions,
@@ -183,7 +183,7 @@ export class JSZip {
     const b: Uint8Array = await this.generateAsync({ type: "uint8array" });
     return await Deno.writeFile(path, b);
   }
-
+  
   /**
    * Unzip a JSZip asynchronously to a directory
    *
@@ -192,16 +192,23 @@ export class JSZip {
    */
   async unzip(dir: string = "."): Promise<void> {
     // FIXME optionally replace the existing folder prefix with dir.
-    for (const f of this) {
-      const ff = join(dir, f.name);
-      if (f.dir) {
-        // hopefully the directory is prior to any files inside it!
-        await Deno.mkdir(ff, { recursive: true });
-        continue;
-      }
-      const content = await f.async("uint8array");
-      // TODO pass WriteFileOptions e.g. mode
-      await Deno.writeFile(ff, content);
+    const createdDirs = new Set<string>();
+
+    for (const fileEntry of this) {
+        const filePath = resolve(dir, fileEntry.name);
+
+        const dirPath = fileEntry.dir ? filePath : dirname(filePath);
+
+        if (!createdDirs.has(dirPath)) {
+            await Deno.mkdir(dirPath, { recursive: true });
+            createdDirs.add(dirPath);
+        }
+
+        if (!fileEntry.dir) {
+            const content = await fileEntry.async("uint8array");
+            // TODO pass WriteFileOptions e.g. mode
+            await Deno.writeFile(filePath, content);
+        }
     }
   }
 
