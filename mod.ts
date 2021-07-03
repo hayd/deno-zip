@@ -1,9 +1,9 @@
 import  _JSZip from "https://dev.jspm.io/jszip@3.5.0";
 import { WalkOptions, walk } from "https://deno.land/std@0.99.0/fs/walk.ts";
-import { SEP, join, resolve, dirname } from "https://deno.land/std@0.99.0/path/mod.ts";
+import { SEP, resolve, dirname } from "https://deno.land/std@0.99.0/path/mod.ts";
 import type {
   InputFileFormat,
-  JSZipFileOptions,
+  JSZipAddFileOptions,
   JSZipGeneratorOptions,
   JSZipLoadOptions,
   JSZipObject,
@@ -107,10 +107,13 @@ export class JSZip {
   addFile(
     path: string,
     content?: string | Uint8Array,
-    options?: JSZipFileOptions,
+    options?: JSZipAddFileOptions,
   ): JSZipObject {
+    const replaceBackslashes = options?.replaceBackslashes === undefined || options.replaceBackslashes; 
+    const finalPath = replaceBackslashes ? path.replaceAll("\\", "/") : path;
+
     // @ts-ignores
-    const f = this._z.file(path, content, options);
+    const f = this._z.file(finalPath, content, options);
     return f as JSZipObject;
   }
 

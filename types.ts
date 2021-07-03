@@ -58,6 +58,10 @@ export interface JSZipFileOptions {
   unixPermissions?: number | string | null;
 }
 
+export interface JSZipAddFileOptions extends JSZipFileOptions {
+  replaceBackslashes?: boolean;
+}
+
 export interface JSZipGeneratorOptions<T extends OutputType = OutputType> {
   compression?: Compression;
   compressionOptions?: null | {
