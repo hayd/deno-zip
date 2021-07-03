@@ -4,12 +4,18 @@ import { assertEquals } from "https://deno.land/std@0.74.0/testing/asserts.ts";
 import { JSZip, readZip, zipDir } from "./mod.ts";
 
 // FIXME use tmp directory and clean up.
-async function exampleZip(path: string) {
+async function exampleZip(path: string, createDirectories = true) {
   const zip = new JSZip();
   zip.addFile("Hello.txt", "Hello World\n");
 
-  const img = zip.folder("images");
-  img.addFile("smile.gif", "\0", { base64: true });
+  if (createDirectories) {
+    const img = zip.folder("images");
+    img.addFile("smile.gif", "\0", { base64: true });
+  }
+  else {
+    // Use backslashed for edge case where directory is missing.
+    zip.addFile("images\\smile.gif", "\0", { base64: true })
+  }
 
   await zip.writeZip(path);
 }
@@ -66,6 +72,20 @@ Deno.test("dir", async () => {
 Deno.test("unzip", async () => {
   const dir = await Deno.makeTempDir();
   await exampleZip("example.zip");
+  const z = await readZip("example.zip");
+  await z.unzip(dir);
+
+  const content = await Deno.readFile(join(dir, "Hello.txt"));
+  assertEquals("Hello World\n", decode(content));
+
+  const smile = await Deno.readFile(join(dir, "images", "smile.gif"));
+  assertEquals("", decode(smile));
+});
+
+Deno.test("unzip without dir", async () => {
+  const dir = await Deno.makeTempDir();
+
+  await exampleZip("example.zip", false);
   const z = await readZip("example.zip");
   await z.unzip(dir);
 
