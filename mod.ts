@@ -1,9 +1,9 @@
-import  _JSZip from "https://dev.jspm.io/jszip@3.5.0";
+import _JSZip from "https://dev.jspm.io/jszip@3.5.0";
 import { WalkOptions, walk } from "https://deno.land/std@0.99.0/fs/walk.ts";
-import { SEP, join } from "https://deno.land/std@0.99.0/path/mod.ts";
+import { SEP, resolve, dirname, globToRegExp } from "https://deno.land/std@0.99.0/path/mod.ts";
 import type {
   InputFileFormat,
-  JSZipFileOptions,
+  JSZipAddFileOptions,
   JSZipGeneratorOptions,
   JSZipLoadOptions,
   JSZipObject,
@@ -107,10 +107,13 @@ export class JSZip {
   addFile(
     path: string,
     content?: string | Uint8Array,
-    options?: JSZipFileOptions,
+    options?: JSZipAddFileOptions,
   ): JSZipObject {
+    const replaceBackslashes = options?.replaceBackslashes === undefined || options.replaceBackslashes;
+    const finalPath = replaceBackslashes ? path.replaceAll("\\", "/") : path;
+
     // @ts-ignores
-    const f = this._z.file(path, content, options);
+    const f = this._z.file(finalPath, content, options);
     return f as JSZipObject;
   }
 
@@ -192,16 +195,27 @@ export class JSZip {
    */
   async unzip(dir: string = "."): Promise<void> {
     // FIXME optionally replace the existing folder prefix with dir.
-    for (const f of this) {
-      const ff = join(dir, f.name);
-      if (f.dir) {
-        // hopefully the directory is prior to any files inside it!
-        await Deno.mkdir(ff, { recursive: true });
-        continue;
+    const createdDirs = new Set<string>();
+    const allowedFileLocRegex = globToRegExp(resolve(dir, "**"));
+
+    for (const fileEntry of this) {
+      const filePath = resolve(dir, fileEntry.name);
+      if (!allowedFileLocRegex.test(filePath)) {
+        throw new Error("Not allowed!");
       }
-      const content = await f.async("uint8array");
-      // TODO pass WriteFileOptions e.g. mode
-      await Deno.writeFile(ff, content);
+
+      const dirPath = fileEntry.dir ? filePath : dirname(filePath);
+
+      if (!createdDirs.has(dirPath)) {
+        await Deno.mkdir(dirPath, { recursive: true });
+        createdDirs.add(dirPath);
+      }
+
+      if (!fileEntry.dir) {
+        const content = await fileEntry.async("uint8array");
+        // TODO pass WriteFileOptions e.g. mode
+        await Deno.writeFile(filePath, content);
+      }
     }
   }
 
