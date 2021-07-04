@@ -1,7 +1,8 @@
 import { decode, encode } from "https://deno.land/std@0.74.0/encoding/utf8.ts";
 import { join } from "https://deno.land/std@0.74.0/path/mod.ts";
-import { assertEquals } from "https://deno.land/std@0.74.0/testing/asserts.ts";
+import { assert, assertEquals, assertThrowsAsync } from "https://deno.land/std@0.74.0/testing/asserts.ts";
 import { JSZip, readZip, zipDir } from "./mod.ts";
+import { exists } from "https://deno.land/std@0.100.0/fs/mod.ts";
 
 // FIXME use tmp directory and clean up.
 async function exampleZip(path: string, createDirectories = true) {
@@ -18,6 +19,19 @@ async function exampleZip(path: string, createDirectories = true) {
   }
 
   await zip.writeZip(path);
+}
+
+// Used for testing path exploits
+async function pathExploitExampleZip() {
+  const zip = new JSZip();
+  zip.addFile("../Hello.txt", "Hello World\n");
+
+  const tempFileName = await Deno.makeTempFile({
+    suffix: ".zip"
+  });
+
+  await zip.writeZip(tempFileName);
+  return tempFileName;
 }
 
 async function fromDir<T>(dir: string, f: () => Promise<T>) {
@@ -94,4 +108,22 @@ Deno.test("unzip without dir", async () => {
 
   const smile = await Deno.readFile(join(dir, "images", "smile.gif"));
   assertEquals("", decode(smile));
+});
+
+Deno.test("unzip exploit test", async () => {
+  const dir = await Deno.makeTempDir();
+  const unpackDir = join(dir, "unpack");
+  await Deno.mkdir(unpackDir);
+
+  const zipFile = await pathExploitExampleZip();
+  const z = await readZip(zipFile);
+
+  await Deno.remove(zipFile);
+
+  assertThrowsAsync(async () => await z.unzip(unpackDir));
+  assert(!(await exists(join(dir, "Hello.txt"))));
+
+  await Deno.remove(dir, {
+    recursive: true
+  });
 });
