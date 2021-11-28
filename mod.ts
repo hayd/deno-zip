@@ -1,6 +1,6 @@
-import  _JSZip from "https://dev.jspm.io/jszip@3.5.0";
-import { WalkOptions, walk } from "https://deno.land/std@0.99.0/fs/walk.ts";
-import { SEP, join } from "https://deno.land/std@0.99.0/path/mod.ts";
+import  _JSZip from "https://esm.sh/jszip@3.7.1";
+import { WalkOptions, walk } from "https://deno.land/std@0.116.0/fs/walk.ts";
+import { SEP, join } from "https://deno.land/std@0.116.0/path/mod.ts";
 import type {
   InputFileFormat,
   JSZipFileOptions,
