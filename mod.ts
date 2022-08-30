@@ -105,9 +105,9 @@ export class JSZip {
    * @param options Optional information about the file
    * @return JSZip object
    */
-  addFile(
+  addFile<T extends keyof InputByType>(
     path: string,
-    content?: InputByType,
+    content?: InputByType[T],
     options?: JSZipFileOptions,
   ): JSZipObject {
     // @ts-ignores
