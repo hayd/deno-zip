@@ -3,6 +3,7 @@ import { WalkOptions, walk } from "https://deno.land/std@0.116.0/fs/walk.ts";
 import { SEP, join } from "https://deno.land/std@0.116.0/path/mod.ts";
 import type {
   InputFileFormat,
+  InputByType,
   JSZipFileOptions,
   JSZipGeneratorOptions,
   JSZipLoadOptions,
@@ -104,9 +105,9 @@ export class JSZip {
    * @param options Optional information about the file
    * @return JSZip object
    */
-  addFile(
+  addFile<T extends keyof InputByType>(
     path: string,
-    content?: string | Uint8Array,
+    content?: InputByType[T],
     options?: JSZipFileOptions,
   ): JSZipObject {
     // @ts-ignores
