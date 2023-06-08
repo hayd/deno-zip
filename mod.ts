@@ -1,4 +1,4 @@
-import  _JSZip from "https://esm.sh/jszip@3.7.1";
+import  _JSZip from "https://esm.sh/jszip@3.10.1";
 import { WalkOptions, walk } from "https://deno.land/std@0.116.0/fs/walk.ts";
 import { SEP, join } from "https://deno.land/std@0.116.0/path/mod.ts";
 import type {
